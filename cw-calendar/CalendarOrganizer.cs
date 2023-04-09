@@ -1,11 +1,9 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 using System.Windows;
 
 namespace cw_calendar
@@ -18,17 +16,13 @@ namespace cw_calendar
         {
             Window = window;
 
-            window.NewEventButton.Click += NewEventButton_Click;
-            window.DeleteEventButton.Click += DeleteEventButton_Click;
-
-            window.EventsListView.SelectionChanged += (_, _) =>
-            {
-                OnPropertyChanged(nameof(CanDeleteEvent));
+            window.Loaded += (_, _) => {
+                Load();
+                Window.Calendar.SelectedDate = DateTime.Today;
             };
         }
 
-        // Define a dictionary to store the events for each date
-        private readonly Dictionary<DateTime, ObservableCollection<CalendarEvent>> eventsByDate = new();
+        public readonly Dictionary<DateTime, ObservableCollection<CalendarEvent>> Events = new();
 
         private DateTime? selectedDate;
         public DateTime? SelectedDate
@@ -40,22 +34,11 @@ namespace cw_calendar
                 {
                     selectedDate = value;
 
-                    if (value is DateTime date && !eventsByDate.ContainsKey(date))
+                    if (value is DateTime date && !Events.ContainsKey(date))
                     {
-                        var collection = new ObservableCollection<CalendarEvent>();
 
-                        collection.CollectionChanged += (_, args) =>
-                        {
-                            if (args.NewItems?.Count != 0)
-                            {
-                                OnPropertyChanged(nameof(NoEventsTextVisible));
-                            }
-                        };
-
-                        eventsByDate[date] = collection;
+                        Events[date] = NewEventsCollection();
                     }
-
-                    // Display the list of events for the selected date in the ListBox
 
                     OnPropertyChanged(nameof(SelectedDate));
                     OnPropertyChanged(nameof(HasDateSelected));
@@ -64,6 +47,25 @@ namespace cw_calendar
                     OnPropertyChanged(nameof(CanDeleteEvent));
                 }
             }
+        }
+
+        private ObservableCollection<CalendarEvent> NewEventsCollection(IEnumerable<CalendarEvent>? events = null)
+        {
+            var collection = new ObservableCollection<CalendarEvent>();
+
+            if (events != null)
+                foreach (CalendarEvent e in events)
+                    collection.Add(e);
+
+            collection.CollectionChanged += (_, args) =>
+            {
+                if (args.NewItems?.Count != 0)
+                {
+                    OnPropertyChanged(nameof(NoEventsTextVisible));
+                }
+            };
+
+            return collection;
         }
 
         public bool HasDateSelected => SelectedDate.HasValue;
@@ -75,7 +77,7 @@ namespace cw_calendar
                 if (SelectedDate is not DateTime date)
                     return null;
 
-                return eventsByDate[date];
+                return Events[date];
             }
         }
 
@@ -83,10 +85,37 @@ namespace cw_calendar
         {
             get
             {
-                if (SelectedDate is not DateTime date || eventsByDate[date].Count != 0)
+                if (SelectedDate is not DateTime date || Events[date].Count != 0)
                     return Visibility.Hidden;
                 else
                     return Visibility.Visible;
+            }
+        }
+
+        private CalendarEvent? selectedEvent;
+        public CalendarEvent? SelectedEvent
+        {
+            get
+            {
+                return selectedEvent;
+            }
+            set
+            {
+                selectedEvent = value;
+                OnPropertyChanged(nameof(SelectedEvent));
+                OnPropertyChanged(nameof(CanDeleteEvent));
+                OnPropertyChanged(nameof(EventDescriptionBoxVisible));
+            }
+        }
+
+        public Visibility EventDescriptionBoxVisible
+        {
+            get
+            {
+                if (SelectedEvent is CalendarEvent e && !string.IsNullOrEmpty(e.Description))
+                    return Visibility.Visible;
+                else
+                    return Visibility.Hidden;
             }
         }
 
@@ -94,33 +123,35 @@ namespace cw_calendar
         {
             get
             {
-                return HasDateSelected && Window.EventsListView.SelectedItem != null;
+                return HasDateSelected && SelectedEvent != null;
             }
         }
 
-        private void NewEventButton_Click(object sender, RoutedEventArgs e)
+        private const string SAVE_FILE_NAME = "calendar.json";
+
+        public void Save()
         {
-            if (SelectedDate is not DateTime date)
-                return;
+            var serializer = new JsonSerializer();
+            serializer.Formatting = Formatting.Indented;
 
-            // Prompt the user to enter an event for the selected date
-            string eventName = Microsoft.VisualBasic.Interaction.InputBox("Enter an event for " + date.ToShortDateString(), "New Event");
-
-            // Add the event to the list for the selected date if the user entered a name
-            if (!string.IsNullOrEmpty(eventName))
-            {
-                eventsByDate[date].Add(new CalendarEvent(eventName, DateTime.Now));
-            }
+            using (StreamWriter sw = new(SAVE_FILE_NAME))
+            using (JsonTextWriter writer = new(sw))
+                serializer.Serialize(writer, Events);
         }
 
-        private void DeleteEventButton_Click(object sender, RoutedEventArgs e)
+        private void Load()
         {
-            if (SelectedDate is not DateTime date)
-                return;
+            if (File.Exists(SAVE_FILE_NAME)) {
+                JsonSerializer serializer = new();
 
-            if (Window.EventsListView.SelectedItem is CalendarEvent evt)
-            {
-                eventsByDate[date]?.Remove(evt);
+                using (StreamReader sr = new(SAVE_FILE_NAME))
+                using (JsonReader reader = new JsonTextReader(sr))
+                {
+                    var EventsByDate = serializer.Deserialize<IDictionary<DateTime, IEnumerable<CalendarEvent>>>(reader);
+                    if (EventsByDate != null)
+                        foreach (var entry in EventsByDate)
+                            Events[entry.Key] = NewEventsCollection(entry.Value);
+                }
             }
         }
 

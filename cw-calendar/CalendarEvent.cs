@@ -1,22 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace cw_calendar
 {
+    [Serializable]
     public class CalendarEvent
     {
         public string Title { get; }
 
         public DateTime StartTime { get; }
 
-        public CalendarEvent(string title, DateTime startTime)
+        public string? Description { get; }
+
+        public CalendarEvent(string title, DateTime startTime, string? description)
         {
             Title = title;
             StartTime = startTime;
+            Description = description;
         }
-
     }
 }
