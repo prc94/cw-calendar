@@ -25,7 +25,7 @@
         <Calendar Grid.Row="1" Grid.Column="0" Name="Calendar" SelectedDate="{Binding SelectedDate}" Margin="0,0,2,0"/>
         <StackPanel Grid.Column="0" Grid.Row="2" Margin="0, 0, 5, 0" VerticalAlignment="Top" Visibility="{Binding EventDescriptionBoxVisible}">
             <Label>Описание:</Label>
-            <TextBox IsReadOnly="True" MinHeight="70" Text="{Binding Path=SelectedEvent.Description, Mode=OneWay}" />
+            <TextBox IsReadOnly="True" MinHeight="70" MaxWidth="175" Text="{Binding Path=SelectedEvent.Description, Mode=OneWay}" TextWrapping="Wrap" />
         </StackPanel>
         <Grid Grid.Row="1" Grid.RowSpan="2" Grid.Column="1">
             <Grid.RowDefinitions>
@@ -57,7 +57,7 @@
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>
-            <TextBlock Text="На выбранную дату пока нет событий." Grid.Row="1" Visibility="{Binding Path=NoEventsTextVisible}" Margin="5" />
+            <TextBlock Text="На выбранную дату пока не назнечено ни одного события." TextWrapping="Wrap" Grid.Row="1" Visibility="{Binding Path=NoEventsTextVisible}" Margin="5" />
         </Grid>
     </Grid>
 </Window>

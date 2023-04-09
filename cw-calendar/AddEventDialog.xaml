@@ -7,7 +7,7 @@
         xmlns:xctk="clr-namespace:Xceed.Wpf.Toolkit;assembly=Xceed.Wpf.Toolkit.NET5"
         mc:Ignorable="d"
         ResizeMode="NoResize"
-        Title="AddEventDialog" Height="300" Width="400">
+        Title="Добавить событие" Height="300" Width="400">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -21,14 +21,14 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <TextBlock Text="Title:" Grid.Row="0" Grid.Column="0" Margin="5" VerticalAlignment="Center"/>
+        <TextBlock Text="Заголовок:" Grid.Row="0" Grid.Column="0" Margin="5" VerticalAlignment="Center"/>
         <TextBox x:Name="titleTextBox" Grid.Row="0" Grid.Column="1" Margin="5"/>
 
-        <TextBlock Text="Time:" Grid.Row="2" Grid.Column="0" Margin="5" VerticalAlignment="Center"/>
+        <TextBlock Text="Время:" Grid.Row="2" Grid.Column="0" Margin="5" VerticalAlignment="Center"/>
         <xctk:TimePicker x:Name="timePicker" Grid.Row="2" Grid.Column="1" Margin="5"/>
 
-        <TextBlock Text="Description:" Grid.Row="3" Grid.Column="0" Margin="5" VerticalAlignment="Center"/>
-        <TextBox x:Name="descriptionTextBox" Grid.Row="3" Grid.Column="1" Margin="5"/>
+        <TextBlock Text="Описание:" Grid.Row="3" Grid.Column="0" Margin="5" VerticalAlignment="Center"/>
+        <TextBox x:Name="descriptionTextBox" Grid.Row="3" Grid.Column="1" Margin="5" TextWrapping="Wrap"/>
 
         <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="5">
             <Button x:Name="addButton" Content="Добавить" Click="AddButton_Click" Width="80" Margin="5" IsEnabled="False"/>
