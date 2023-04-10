@@ -16,7 +16,8 @@ namespace cw_calendar
         {
             Window = window;
 
-            window.Loaded += (_, _) => {
+            window.Loaded += (_, _) =>
+            {
                 Load();
                 Window.Calendar.SelectedDate = DateTime.Today;
             };
@@ -41,11 +42,75 @@ namespace cw_calendar
                     }
 
                     OnPropertyChanged(nameof(SelectedDate));
+
                     OnPropertyChanged(nameof(HasDateSelected));
                     OnPropertyChanged(nameof(SelectedDateEvents));
                     OnPropertyChanged(nameof(NoEventsTextVisible));
                     OnPropertyChanged(nameof(CanDeleteEvent));
                 }
+            }
+        }
+
+        public bool HasDateSelected => SelectedDate.HasValue;
+
+        public ObservableCollection<CalendarEvent>? SelectedDateEvents
+        {
+            get
+            {
+                if (SelectedDate is not DateTime date)
+                    return null;
+
+                return Events[date];
+            }
+        }
+
+        private CalendarEvent? selectedEvent;
+        public CalendarEvent? SelectedEvent
+        {
+            get
+            {
+                return selectedEvent;
+            }
+            set
+            {
+                if (selectedEvent != value)
+                {
+                    selectedEvent = value;
+                    OnPropertyChanged(nameof(SelectedEvent));
+
+                    OnPropertyChanged(nameof(CanDeleteEvent));
+                    OnPropertyChanged(nameof(EventDescriptionBoxVisible));
+                }
+            }
+        }
+
+        public Visibility EventDescriptionBoxVisible
+        {
+            get
+            {
+                if (SelectedEvent is CalendarEvent e && !string.IsNullOrEmpty(e.Description))
+                    return Visibility.Visible;
+                else
+                    return Visibility.Hidden;
+            }
+        }
+
+        public Visibility NoEventsTextVisible
+        {
+            get
+            {
+                if (SelectedDate is not DateTime date || Events[date].Count != 0)
+                    return Visibility.Hidden;
+                else
+                    return Visibility.Visible;
+            }
+        }
+
+        public bool CanDeleteEvent
+        {
+            get
+            {
+                return HasDateSelected && SelectedEvent != null;
             }
         }
 
@@ -68,65 +133,6 @@ namespace cw_calendar
             return collection;
         }
 
-        public bool HasDateSelected => SelectedDate.HasValue;
-
-        public ObservableCollection<CalendarEvent>? SelectedDateEvents
-        {
-            get
-            {
-                if (SelectedDate is not DateTime date)
-                    return null;
-
-                return Events[date];
-            }
-        }
-
-        public Visibility NoEventsTextVisible
-        {
-            get
-            {
-                if (SelectedDate is not DateTime date || Events[date].Count != 0)
-                    return Visibility.Hidden;
-                else
-                    return Visibility.Visible;
-            }
-        }
-
-        private CalendarEvent? selectedEvent;
-        public CalendarEvent? SelectedEvent
-        {
-            get
-            {
-                return selectedEvent;
-            }
-            set
-            {
-                selectedEvent = value;
-                OnPropertyChanged(nameof(SelectedEvent));
-                OnPropertyChanged(nameof(CanDeleteEvent));
-                OnPropertyChanged(nameof(EventDescriptionBoxVisible));
-            }
-        }
-
-        public Visibility EventDescriptionBoxVisible
-        {
-            get
-            {
-                if (SelectedEvent is CalendarEvent e && !string.IsNullOrEmpty(e.Description))
-                    return Visibility.Visible;
-                else
-                    return Visibility.Hidden;
-            }
-        }
-
-        public bool CanDeleteEvent
-        {
-            get
-            {
-                return HasDateSelected && SelectedEvent != null;
-            }
-        }
-
         private const string SAVE_FILE_NAME = "calendar.json";
 
         public void Save()
@@ -141,7 +147,8 @@ namespace cw_calendar
 
         private void Load()
         {
-            if (File.Exists(SAVE_FILE_NAME)) {
+            if (File.Exists(SAVE_FILE_NAME))
+            {
                 JsonSerializer serializer = new();
 
                 using (StreamReader sr = new(SAVE_FILE_NAME))

@@ -13,7 +13,9 @@ namespace cw_calendar
         public AddEventDialog(Action<CalendarEvent> callback)
         {
             Callback = callback;
+
             InitializeComponent();
+
             timePicker.Value = DateTime.Now;
 
             var updateAddButton = () =>
@@ -39,9 +41,7 @@ namespace cw_calendar
         {
             if (!string.IsNullOrEmpty(titleTextBox.Text) && timePicker.Value is DateTime time)
             {
-                var newEvent = new CalendarEvent(titleTextBox.Text, time, descriptionTextBox.Text);
-
-                Callback(newEvent);
+                Callback(new CalendarEvent(titleTextBox.Text, time, descriptionTextBox.Text));
 
                 DialogResult = true;
                 Close();
